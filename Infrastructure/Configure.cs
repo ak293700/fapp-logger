@@ -30,7 +30,8 @@ public static class Configure
 
         #region Kafka
 
-        services.AddSingleton<KafkaConfig>();
+        services.AddSingleton<KafkaConsumerConfig>();
+        services.AddSingleton<KafkaProducerConfig>(); // TODO: Remove
 
         #endregion
         

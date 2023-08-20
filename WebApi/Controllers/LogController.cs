@@ -1,6 +1,6 @@
 using Application.Common.Interfaces;
-using Application.Services;
 using Domain.Entities.LogEntities;
+using FappCommon.Kafka.Log;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 
@@ -13,9 +13,9 @@ namespace FappLogger.Controllers;
 public class LogController : ControllerBase
 {
     private readonly IApplicationDbContext _context;
-    private readonly KafkaProducer _kafkaProducer;
+    private readonly KafkaLogProducerService _kafkaProducer;
 
-    public LogController(IApplicationDbContext context, KafkaProducer kafkaProducer)
+    public LogController(IApplicationDbContext context, KafkaLogProducerService kafkaProducer)
     {
         _context = context;
         _kafkaProducer = kafkaProducer;
@@ -35,8 +35,27 @@ public class LogController : ControllerBase
     }
     
     [HttpPost("log")]
-    public async Task Log([FromBody]string message, CancellationToken cancellationToken = default)
+    public async Task Log([FromBody]Log log, CancellationToken cancellationToken = default)
     {
-       _kafkaProducer.ProduceMessage(message);
+        await _context.Logs.InsertOneAsync(log, cancellationToken: cancellationToken);
+    }
+    
+    [HttpPost("log-message")]
+    public async Task Log([FromBody]KafkaLogMessage kafkaLogMessage, CancellationToken cancellationToken = default)
+    {
+        Log log = new Log
+        {
+            Template = kafkaLogMessage.Template,
+            Level = kafkaLogMessage.LogLevel,
+            Timestamp = DateTime.Now,
+        };
+        
+        BsonDocument bsonDocument = BsonDocument.Parse(kafkaLogMessage.Data);
+        log.Data = bsonDocument;
+        
+        await _context.Logs.InsertOneAsync(log, cancellationToken: cancellationToken);
+        
+        // _kafkaProducer.ProduceMessage(kafkaLogMessage);
+        // return Task.CompletedTask;
     }
 }
