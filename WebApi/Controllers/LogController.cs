@@ -35,12 +35,6 @@ public class LogController : ControllerBase
     }
     
     [HttpPost("log")]
-    public async Task Log([FromBody]Log log, CancellationToken cancellationToken = default)
-    {
-        await _context.Logs.InsertOneAsync(log, cancellationToken: cancellationToken);
-    }
-    
-    [HttpPost("log-message")]
     public async Task Log([FromBody]KafkaLogMessage kafkaLogMessage, CancellationToken cancellationToken = default)
     {
         Log log = new Log
@@ -54,8 +48,5 @@ public class LogController : ControllerBase
         log.Data = bsonDocument;
         
         await _context.Logs.InsertOneAsync(log, cancellationToken: cancellationToken);
-        
-        // _kafkaProducer.ProduceMessage(kafkaLogMessage);
-        // return Task.CompletedTask;
     }
 }

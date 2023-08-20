@@ -27,11 +27,11 @@ public class KafkaLogConsumerService : BackgroundService
         // stoppingToken is used from within the Perform method
 #pragma warning disable CA2016
         // ReSharper disable once MethodSupportsCancellation
-        return Task.Run(() => Perform(stoppingToken));
+        return Task.Run(() => Init(stoppingToken));
 #pragma warning restore CA2016
     }
 
-    private async Task Perform(CancellationToken stoppingToken)
+    private async Task Init(CancellationToken stoppingToken)
     {
         IServiceScope scope = _scopeFactory.CreateScope();
         using IApplicationDbContext context = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
@@ -46,25 +46,7 @@ public class KafkaLogConsumerService : BackgroundService
         {
             try
             {
-                ConsumeResult<Ignore, KafkaLogMessage>? consumeResult = consumer.Consume(stoppingToken);
-                if (consumeResult is null)
-                    continue;
-                
-                KafkaLogMessage message = consumeResult.Message.Value;
-
-                Log log = new Log
-                {
-                    Template = message.Template,
-                    Level = message.LogLevel,
-                    Timestamp = message.Timespan,
-                    Data = BsonDocument.Parse(message.Data)
-                };
-                
-                await context.Logs.InsertOneAsync(log, cancellationToken: stoppingToken);
-            }
-            catch (OperationCanceledException)
-            {
-                // Graceful shutdown
+                await ConsumeOnce(consumer, context, stoppingToken);
             }
             catch (Exception)
             {
@@ -72,9 +54,29 @@ public class KafkaLogConsumerService : BackgroundService
             }
         }
     }
+
+    private async Task ConsumeOnce(IConsumer<Ignore, KafkaLogMessage> consumer, IApplicationDbContext context, CancellationToken stoppingToken)
+    {
+        ConsumeResult<Ignore, KafkaLogMessage>? consumeResult = consumer.Consume(stoppingToken);
+        if (consumeResult is null)
+            return;
+                
+        KafkaLogMessage message = consumeResult.Message.Value;
+
+        Log log = new Log
+        {
+            Template = message.Template,
+            Level = message.LogLevel,
+            Timestamp = message.Timespan,
+            Data = BsonDocument.Parse(message.Data)
+        };
+                
+        await context.Logs.InsertOneAsync(log, cancellationToken: stoppingToken);
+    }
+    
 }
 
-public class JsonDeserializer<T> : IDeserializer<T>
+file class JsonDeserializer<T> : IDeserializer<T>
 {
     public T Deserialize(ReadOnlySpan<byte> data, bool isNull, SerializationContext context)
     {
