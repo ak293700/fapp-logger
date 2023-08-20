@@ -1,4 +1,5 @@
 using Application.Common.Interfaces;
+using FappCommon.Kafka.Config;
 using FappCommon.Mongo4Test;
 using FappCommon.Mongo4Test.Implementations;
 using Infrastructure.DbContext;
@@ -25,6 +26,12 @@ public static class Configure
         services.AddMongoDbContext<IApplicationDbContext, ApplicationDbContext>(options);
         // BaseMongoDbContext.RunMigrations<ApplicationDbContext>(options, builder.Configuration);
         
+        #endregion
+
+        #region Kafka
+
+        services.AddSingleton<KafkaConfig>();
+
         #endregion
         
         return builder;

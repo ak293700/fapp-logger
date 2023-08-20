@@ -1,18 +1,18 @@
 using Confluent.Kafka;
+using FappCommon.Kafka.Config;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Services;
 
-public class KafkaConsumerService : BackgroundService
+public class KafkaLogConsumerService : BackgroundService
 {
-    private readonly ILogger<KafkaConsumerService> _logger;
-    private const string BootstrapServers = "localhost:9092"; // Update with your Kafka broker address
-    private const string GroupId = "my-consumer-group"; // Update with your consumer group ID
-    private const string Topic = "my-topic"; // Update with the topic you want to consume from
+    private readonly ILogger<KafkaLogConsumerService> _logger;
+    private readonly KafkaConsumerConfig _config;
 
-    public KafkaConsumerService(ILogger<KafkaConsumerService> logger)
+    public KafkaLogConsumerService(KafkaConsumerConfig config, ILogger<KafkaLogConsumerService> logger)
     {
+        _config = config;
         _logger = logger;
     }
 
@@ -27,17 +27,8 @@ public class KafkaConsumerService : BackgroundService
 
     private void Perform(CancellationToken stoppingToken)
     {
-        ConsumerConfig config = new ConsumerConfig
-        {
-            BootstrapServers = BootstrapServers,
-            GroupId = GroupId,
-            AutoOffsetReset = AutoOffsetReset.Earliest
-        };
-
-        using IConsumer<Ignore, string>? consumer = new ConsumerBuilder<Ignore, string>(config).Build();
-        consumer.Subscribe(Topic);
-
-        _logger.LogInformation("Consumer subscribed to topic: {Topic}", Topic);
+        using IConsumer<Ignore, string>? consumer = new ConsumerBuilder<Ignore, string>(_config.ConsumerConfig).Build();
+        consumer.Subscribe(_config.Topic);
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -55,7 +46,5 @@ public class KafkaConsumerService : BackgroundService
                 _logger.LogError(ex, "Error consuming message");
             }
         }
-
-        Console.WriteLine("Consumer disconnected");
     }
 }

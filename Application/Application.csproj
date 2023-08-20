@@ -16,6 +16,7 @@
 
 
     <ItemGroup>
+      <ProjectReference Include="..\..\..\fapp-common\FappCommon\FappCommon.Kafka\FappCommon.Kafka.csproj" />
       <ProjectReference Include="..\Domain\Domain.csproj" />
     </ItemGroup>
 
