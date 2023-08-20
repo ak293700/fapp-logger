@@ -1,10 +1,13 @@
 using Application.Common.Interfaces;
 using FappCommon.Kafka.Config;
+using FappCommon.Kafka.Extensions;
 using FappCommon.Mongo4Test;
 using FappCommon.Mongo4Test.Implementations;
 using Infrastructure.DbContext;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Infrastructure;
 
@@ -32,6 +35,12 @@ public static class Configure
 
         services.AddSingleton<KafkaConsumerConfig>();
         services.AddSingleton<KafkaProducerConfig>(); // TODO: Remove
+        
+        // TODO fix it. It does not work during startup 
+        builder.Logging
+            .ClearProviders()
+            .AddKafkaLogger();
+            // .AddConsole();
 
         #endregion
         
