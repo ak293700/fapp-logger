@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Confluent.Kafka" Version="2.2.0" />
         <PackageReference Include="FappCommon.Exceptions" Version="1.0.3" />
         <PackageReference Include="FappCommon.Mongo4Test" Version="2.1.1" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.10" />
@@ -17,5 +18,9 @@
     <ItemGroup>
       <ProjectReference Include="..\Domain\Domain.csproj" />
     </ItemGroup>
+
+
+
+
 
 </Project>
