@@ -34,7 +34,7 @@ public class KafkaLogConsumerService : BackgroundService
     private async Task Init(CancellationToken stoppingToken)
     {
         IServiceScope scope = _scopeFactory.CreateScope();
-        using IApplicationDbContext context = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
+        using LogService context = scope.ServiceProvider.GetRequiredService<LogService>();
         
         JsonDeserializer<KafkaLogMessage> deserializer = new JsonDeserializer<KafkaLogMessage>();
         using IConsumer<Ignore, KafkaLogMessage>? consumer = new ConsumerBuilder<Ignore, KafkaLogMessage>(_config.ConsumerConfig)
@@ -55,25 +55,14 @@ public class KafkaLogConsumerService : BackgroundService
         }
     }
 
-    private async Task ConsumeOnce(IConsumer<Ignore, KafkaLogMessage> consumer, IApplicationDbContext context, CancellationToken stoppingToken)
+    private async Task ConsumeOnce(IConsumer<Ignore, KafkaLogMessage> consumer, LogService logService, CancellationToken stoppingToken)
     {
         ConsumeResult<Ignore, KafkaLogMessage>? consumeResult = consumer.Consume(stoppingToken);
         if (consumeResult is null)
             return;
-                
-        KafkaLogMessage message = consumeResult.Message.Value;
 
-        Log log = new Log
-        {
-            Template = message.Template,
-            Level = message.LogLevel,
-            Timestamp = message.Timespan,
-            Data = BsonDocument.Parse(message.Data)
-        };
-                
-        await context.Logs.InsertOneAsync(log, cancellationToken: stoppingToken);
+        await logService.Create(consumeResult.Message.Value, stoppingToken);
     }
-    
 }
 
 file class JsonDeserializer<T> : IDeserializer<T>

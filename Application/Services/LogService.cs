@@ -1,9 +1,11 @@
 using Application.Common.Interfaces;
+using Domain.Entities.LogEntities;
 using FappCommon.Kafka.Log;
+using MongoDB.Bson;
 
 namespace Application.Services;
 
-public class LogService
+public class LogService : IDisposable
 {
     private readonly IApplicationDbContext _context;
 
@@ -12,8 +14,22 @@ public class LogService
         _context = context;
     }
 
-    public async Task Log(KafkaLogMessage message)
+    public async Task Create(KafkaLogMessage message, CancellationToken cancellationToken = default)
     {
-        // await _context.Logs.InsertOneAsync(message);
+        Log log = new Log
+        {
+            Template = message.Template,
+            Level = message.LogLevel,
+            Timestamp = message.Timespan,
+            Data = BsonDocument.Parse(message.Data)
+        };
+        
+        await _context.Logs.InsertOneAsync(log, cancellationToken: cancellationToken);
+    }
+
+    public void Dispose()
+    {
+        _context.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

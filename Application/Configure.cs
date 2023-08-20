@@ -13,8 +13,9 @@ public static class Configure
         
         #region Services
 
-        services.AddScoped<KafkaLogProducerService>();
+        services.AddScoped<KafkaLogProducerService>(); // TODO: Remove it 
         services.AddHostedService<KafkaLogConsumerService>();
+        services.AddScoped<LogService>();
 
         #endregion
         
