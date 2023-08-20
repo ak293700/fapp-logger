@@ -9,6 +9,7 @@ builder
     .ConfigureApplication()
     .ConfigureWebApi();
 
+
 WebApplication app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -17,6 +18,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.MapGet("/", () => "Hello World!");
+app.UseCors(Infrastructure.Configure.CorsPolicy);
+
+app.MapControllers();
 
 app.Run();
