@@ -13,28 +13,13 @@ namespace FappLogger.Controllers;
 public class LogController : ControllerBase
 {
     private readonly IApplicationDbContext _context;
-    private readonly KafkaLogProducerService _kafkaProducer;
 
-    public LogController(IApplicationDbContext context, KafkaLogProducerService kafkaProducer)
+    public LogController(IApplicationDbContext context)
     {
         _context = context;
-        _kafkaProducer = kafkaProducer;
-    }
-
-    [HttpPost]
-    public async Task CreateLog(CancellationToken cancellationToken = default)
-    {
-        Console.WriteLine("LogController.CreateLog");
-        Log log = new Log
-        {
-            Template = "Hello {Name}",
-            Level = LogLevel.Information,
-            Timestamp = DateTime.Now
-        };
-        await _context.Logs.InsertOneAsync(log, cancellationToken: cancellationToken);
     }
     
-    [HttpPost("log")]
+    [HttpPost]
     public async Task Log([FromBody]KafkaLogMessage kafkaLogMessage, CancellationToken cancellationToken = default)
     {
         Log log = new Log
