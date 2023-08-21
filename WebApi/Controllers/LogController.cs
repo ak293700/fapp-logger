@@ -1,4 +1,5 @@
 using Application.Common.Interfaces;
+using Application.Services;
 using Domain.Entities.LogEntities;
 using FappCommon.Kafka.Log;
 using Microsoft.AspNetCore.Mvc;
@@ -13,35 +14,16 @@ namespace FappLogger.Controllers;
 [ApiController]
 public class LogController : ControllerBase
 {
-    private readonly IApplicationDbContext _context;
-    private readonly ILogger<LogController> _logger;
+    private readonly LogService _logService;
 
-    public LogController(IApplicationDbContext context, ILogger<LogController> logger)
+    public LogController(LogService logService)
     {
-        _context = context;
-        _logger = logger;
+        _logService = logService;
     }
     
     [HttpPost]
     public async Task Log([FromBody]KafkaLogMessage kafkaLogMessage, CancellationToken cancellationToken = default)
     {
-        Log log = new Log
-        {
-            Template = kafkaLogMessage.Template,
-            Level = kafkaLogMessage.LogLevel,
-            Timestamp = DateTime.Now,
-        };
-        
-        BsonDocument bsonDocument = BsonDocument.Parse(kafkaLogMessage.Data);
-        log.Data = bsonDocument;
-        
-        await _context.Logs.InsertOneAsync(log, cancellationToken: cancellationToken);
+        await _logService.Create(kafkaLogMessage, cancellationToken);
     }
-
-    [HttpPost("test")]
-    public async Task Test()
-    {
-        _logger.LogInformation("""Test "{Name}" starts at {Time}""", "FromController", DateTime.Now);
-    }
-    
 }

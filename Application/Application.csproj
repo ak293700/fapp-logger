@@ -10,13 +10,13 @@
     <ItemGroup>
         <PackageReference Include="Confluent.Kafka" Version="2.2.0" />
         <PackageReference Include="FappCommon.Exceptions" Version="1.0.3" />
+        <PackageReference Include="FappCommon.Kafka" Version="1.0.0" />
         <PackageReference Include="FappCommon.Mongo4Test" Version="2.1.1" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.10" />
     </ItemGroup>
 
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\fapp-common\FappCommon\FappCommon.Kafka\FappCommon.Kafka.csproj" />
       <ProjectReference Include="..\Domain\Domain.csproj" />
     </ItemGroup>
 
