@@ -67,7 +67,7 @@ public class KafkaLogConsumerService : BackgroundService
 
         using IConsumer<Ignore, KafkaLogMessage>? consumer =
             new ConsumerBuilder<Ignore, KafkaLogMessage>(_config.ConsumerConfig)
-                .SetValueDeserializer(KafkaLogMessage.Deserializer)
+                .SetValueDeserializer(KafkaLogMessage.Serializer)
                 .Build();
         consumer.Subscribe(_config.Topic);
 
