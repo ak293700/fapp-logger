@@ -20,7 +20,7 @@ public class LogService : IDisposable
         {
             Template = message.Template,
             Level = message.LogLevel,
-            Timestamp = message.Timespan,
+            Timestamp = message.TimespanAsUtc,
             Data = BsonDocument.Parse(message.Data)
         };
         

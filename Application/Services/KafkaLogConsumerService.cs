@@ -1,13 +1,8 @@
-using System.Text;
-using Application.Common.Interfaces;
 using Confluent.Kafka;
-using Domain.Entities.LogEntities;
 using FappCommon.Kafka.Config;
 using FappCommon.Kafka.Log;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using MongoDB.Bson;
-using System.Text.Json;
 using Confluent.Kafka.Admin;
 
 namespace Application.Services;
@@ -70,10 +65,9 @@ public class KafkaLogConsumerService : BackgroundService
         IServiceScope scope = _scopeFactory.CreateScope();
         using LogService context = scope.ServiceProvider.GetRequiredService<LogService>();
 
-        JsonDeserializer<KafkaLogMessage> deserializer = new JsonDeserializer<KafkaLogMessage>();
         using IConsumer<Ignore, KafkaLogMessage>? consumer =
             new ConsumerBuilder<Ignore, KafkaLogMessage>(_config.ConsumerConfig)
-                .SetValueDeserializer(deserializer)
+                .SetValueDeserializer(KafkaLogMessage.Deserializer)
                 .Build();
         consumer.Subscribe(_config.Topic);
 
@@ -98,19 +92,5 @@ public class KafkaLogConsumerService : BackgroundService
             return;
 
         await logService.Create(consumeResult.Message.Value, stoppingToken);
-    }
-}
-
-file class JsonDeserializer<T> : IDeserializer<T>
-{
-    public T Deserialize(ReadOnlySpan<byte> data, bool isNull, SerializationContext context)
-    {
-        if (isNull)
-        {
-            return default!;
-        }
-
-        string json = Encoding.UTF8.GetString(data.ToArray());
-        return JsonSerializer.Deserialize<T>(json)!;
     }
 }
